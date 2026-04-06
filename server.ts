@@ -65,13 +65,21 @@ async function startServer() {
     }
 
     // Handle potential formatting issues with the private key from env vars
-    key = key.replace(/^"|"$/g, ''); // Remove surrounding quotes if present
-    key = key.replace(/\\n/g, '\n'); // Replace literal \n with actual newlines
+    let formattedKey = key;
+    // Remove surrounding quotes if present (single or double)
+    formattedKey = formattedKey.replace(/^['"]|['"]$/g, '');
+    // Replace literal \n with actual newlines
+    formattedKey = formattedKey.replace(/\\n/g, '\n');
+    
+    // Ensure the key has the correct PEM headers if they were somehow stripped
+    if (!formattedKey.includes('-----BEGIN PRIVATE KEY-----')) {
+      formattedKey = `-----BEGIN PRIVATE KEY-----\n${formattedKey}\n-----END PRIVATE KEY-----\n`;
+    }
 
     try {
       const serviceAccountAuth = new JWT({
         email,
-        key,
+        key: formattedKey,
         scopes: ['https://www.googleapis.com/auth/spreadsheets'],
       });
 

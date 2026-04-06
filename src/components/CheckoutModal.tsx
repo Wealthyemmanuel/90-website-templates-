@@ -71,13 +71,13 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
   };
 
   const getWhatsAppLink = () => {
-    const message = `Hello Naval! I just completed payment for the 200+ Done-For-You Sales Pages Bundle. Name: ${formData.name} / WhatsApp: ${formData.whatsapp} / Please send me my bundle access. Thank you!`;
+    const message = `Hello Naval! I just completed payment for the 90+ Done-For-You Sales Pages Bundle. Name: ${formData.name} / WhatsApp: ${formData.whatsapp} / Please send me my bundle access. Thank you!`;
     return `https://wa.me/2347033570538?text=${encodeURIComponent(message)}`;
   };
 
   const getManualTransferLink = () => {
     const namePart = formData.name ? `Name: ${formData.name} / ` : '';
-    const message = `Hello Naval! I just made a manual transfer of N5,000 for the 200+ DFY Sales Pages Bundle. ${namePart}Here is my payment proof:`;
+    const message = `Hello Naval! I just made a manual transfer of N5,000 for the 90+ DFY Sales Pages Bundle. ${namePart}Here is my payment proof:`;
     return `https://wa.me/2347033570538?text=${encodeURIComponent(message)}`;
   };
 
@@ -104,7 +104,7 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
               <div className="bg-surface-2 p-4 rounded border border-[#222] mb-6">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-text-muted text-sm">Product</span>
-                  <span className="font-medium">200+ DFY Sales Pages Bundle</span>
+                  <span className="font-medium">90+ DFY Sales Pages Bundle</span>
                 </div>
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-text-muted text-sm">Delivery</span>
@@ -160,11 +160,11 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
                 <div className="bg-surface-2 border border-[#333] p-5 rounded text-sm text-left">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-text-muted">Bank:</span>
-                    <span className="font-bold">Opay</span>
+                    <span className="font-bold">opay Bank</span>
                   </div>
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-text-muted">Account Name:</span>
-                    <span className="font-bold text-gold">Emmanuel Ifenna Nsodukwa</span>
+                    <span className="font-bold text-gold">Emmanuel Ifenna</span>
                   </div>
                   <div className="flex justify-between items-center mb-4">
                     <span className="text-text-muted">Account Number:</span>
