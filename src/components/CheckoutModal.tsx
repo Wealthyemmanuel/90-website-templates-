@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { CheckCircle2, ArrowRight, ArrowLeft, X } from 'lucide-react';
-import { usePaystackPayment } from 'react-paystack';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -11,16 +10,6 @@ interface CheckoutModalProps {
 export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({ name: '', email: '', whatsapp: '' });
-
-  const config = {
-    reference: 'NAVAL_' + Math.floor((Math.random() * 1000000000) + 1),
-    email: formData.email || 'customer@example.com',
-    amount: 500000, // 500000 kobo = N5000
-    publicKey: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_fbab14cc7aff03ae794c607f3b8112a7861f3947',
-    currency: 'NGN',
-  };
-
-  const initializePayment = usePaystackPayment(config);
 
   // Reset step when modal opens
   useEffect(() => {
@@ -68,10 +57,6 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
     setStep(3);
   };
 
-  const onClosePayment = () => {
-    console.log('Payment window closed');
-  };
-
   const handlePayment = () => {
     if (!formData.email) {
       alert("Please enter your email address first.");
@@ -83,16 +68,6 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
     // This simulates a successful payment instantly without loading Paystack.
     console.log("Bypassing Paystack for testing...");
     onSuccess({ reference: 'TEST_BYPASS_' + Date.now() });
-
-    /* 
-    // --- UNCOMMENT THIS SECTION FOR PRODUCTION DEPLOYMENT ---
-    try {
-      initializePayment({ onSuccess, onClose: onClosePayment });
-    } catch (err) {
-      console.error("Paystack initialization error:", err);
-      alert("Payment failed to initialize. Please check your internet connection and try again.");
-    }
-    */
   };
 
   const getWhatsAppLink = () => {
