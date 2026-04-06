@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { CheckCircle2, ArrowRight, ArrowLeft, X } from 'lucide-react';
+import { usePaystackPayment } from 'react-paystack';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -10,6 +11,16 @@ interface CheckoutModalProps {
 export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({ name: '', email: '', whatsapp: '' });
+
+  const config = {
+    reference: 'NAVAL_' + Math.floor((Math.random() * 1000000000) + 1),
+    email: formData.email || 'customer@example.com',
+    amount: 500000, // 500000 kobo = N5000
+    publicKey: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_fbab14cc7aff03ae794c607f3b8112a7861f3947',
+    currency: 'NGN',
+  };
+
+  const initializePayment = usePaystackPayment(config);
 
   // Reset step when modal opens
   useEffect(() => {
@@ -35,7 +46,30 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
 
   const handleDetailsSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setStep(2);
+    handlePayment();
+  };
+
+  const onSuccess = async (response: any) => {
+    try {
+      // Backend handles CAPI Purchase Event
+      await fetch('/api/purchase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          whatsapp: formData.whatsapp,
+          reference: response.reference
+        })
+      });
+    } catch (err) {
+      console.error('Failed to save purchase:', err);
+    }
+    setStep(3);
+  };
+
+  const onClosePayment = () => {
+    console.log('Payment window closed');
   };
 
   const handlePayment = () => {
@@ -44,60 +78,23 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
       setStep(1);
       return;
     }
-
-    // @ts-ignore
-    if (typeof window.PaystackPop === 'undefined') {
-      const script = document.createElement('script');
-      script.src = 'https://js.paystack.co/v1/inline.js';
-      script.onload = initializePayment;
-      script.onerror = () => alert("Failed to load payment gateway. Please check your internet connection.");
-      document.body.appendChild(script);
-    } else {
-      initializePayment();
-    }
-  };
-
-  const initializePayment = () => {
+    
     try {
-      // @ts-ignore
-      const handler = window.PaystackPop.setup({
-        key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_fbab14cc7aff03ae794c607f3b8112a7861f3947',
-        email: formData.email,
-        amount: 500000, // 500000 kobo = N5000
-        currency: 'NGN',
-        ref: 'NAVAL_' + Math.floor((Math.random() * 1000000000) + 1),
-        callback: async function(response: any) {
-          try {
-            // Backend handles CAPI Purchase Event
-            await fetch('/api/purchase', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                name: formData.name,
-                email: formData.email,
-                whatsapp: formData.whatsapp,
-                reference: response.reference
-              })
-            });
-          } catch (err) {
-            console.error('Failed to save purchase:', err);
-          }
-
-          setStep(3);
-        },
-        onClose: function() {
-          console.log('Payment window closed');
-        }
-      });
-      handler.openIframe();
+      initializePayment({ onSuccess, onClose: onClosePayment });
     } catch (err) {
       console.error("Paystack initialization error:", err);
-      alert("Payment failed to initialize. If you are viewing this inside the AI Studio preview, please click the 'Open in New Tab' button at the top right of the preview window to process payments.");
+      alert("Payment failed to initialize. Please check your internet connection and try again.");
     }
   };
 
   const getWhatsAppLink = () => {
     const message = `Hello Naval! I just completed payment for the 200+ Done-For-You Sales Pages Bundle. Name: ${formData.name} / WhatsApp: ${formData.whatsapp} / Please send me my bundle access. Thank you!`;
+    return `https://wa.me/2347033570538?text=${encodeURIComponent(message)}`;
+  };
+
+  const getManualTransferLink = () => {
+    const namePart = formData.name ? `Name: ${formData.name} / ` : '';
+    const message = `Hello Naval! I just made a manual transfer of N5,000 for the 200+ DFY Sales Pages Bundle. ${namePart}Here is my payment proof:`;
     return `https://wa.me/2347033570538?text=${encodeURIComponent(message)}`;
   };
 
@@ -139,12 +136,6 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
                 </div>
               </div>
 
-              <div className="relative flex justify-between mb-8">
-                <div className="absolute top-1/2 left-0 w-full h-[2px] bg-[#222] -z-10 -translate-y-1/2"></div>
-                <span className="bg-surface-1 px-2 text-gold text-sm font-medium">1: Your Details</span>
-                <span className="bg-surface-1 px-2 text-text-muted text-sm font-medium">2: Payment</span>
-              </div>
-
               <form onSubmit={handleDetailsSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium mb-2">Full Name</label>
@@ -177,41 +168,37 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
                   />
                 </div>
                 <button type="submit" className="w-full p-4 bg-gold text-black font-bold rounded hover:bg-gold-light transition-colors mt-4 flex items-center justify-center gap-2">
-                  Continue to Payment <ArrowRight size={18} />
+                  Pay N5,000 Securely <ArrowRight size={18} />
                 </button>
               </form>
-            </motion.div>
-          )}
 
-          {step === 2 && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <div className="relative flex justify-between mb-8">
-                <div className="absolute top-1/2 left-0 w-full h-[2px] bg-[#222] -z-10 -translate-y-1/2"></div>
-                <span className="bg-surface-1 px-2 text-text-muted text-sm font-medium">1: Your Details</span>
-                <span className="bg-surface-1 px-2 text-gold text-sm font-medium">2: Payment</span>
+              <div className="mt-8 pt-6 border-t border-[#333] text-center">
+                <p className="text-sm text-text-muted mb-4">Prefer manual transfer?</p>
+                <div className="bg-surface-2 border border-[#333] p-5 rounded text-sm text-left">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-text-muted">Bank:</span>
+                    <span className="font-bold">Opay</span>
+                  </div>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-text-muted">Account Name:</span>
+                    <span className="font-bold text-gold">Emmanuel Ifenna Nsodukwa</span>
+                  </div>
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="text-text-muted">Account Number:</span>
+                    <span className="font-mono text-lg font-bold">7033570538</span>
+                  </div>
+                  <p className="text-xs text-text-muted text-center mb-3">After transfer, click the button below to send your proof of payment on WhatsApp.</p>
+                  <a 
+                    href={getManualTransferLink()} 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="w-full py-3 bg-[#25D366] text-white font-bold rounded hover:bg-[#128C7E] transition-colors flex items-center justify-center gap-2"
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51h-.57c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+                    I have transferred
+                  </a>
+                </div>
               </div>
-
-              <div className="bg-gold-dim border border-gold-border p-5 rounded mb-6 space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-text-muted">Paying as:</span>
-                  <span className="font-bold text-text-main">{formData.name}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-text-muted">To:</span>
-                  <span className="font-bold text-text-main">Emmanuel Ifenna Nsodukwa</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-text-muted">Amount:</span>
-                  <span className="font-bold text-gold font-mono">N5,000</span>
-                </div>
-              </div>
-
-              <button onClick={handlePayment} className="w-full p-4 bg-gold text-black font-bold rounded hover:bg-gold-light transition-colors flex items-center justify-center gap-2">
-                Pay N5,000 Securely
-              </button>
-              <button onClick={() => setStep(1)} className="w-full mt-4 text-text-muted hover:text-text-main text-sm underline flex items-center justify-center gap-2">
-                <ArrowLeft size={16} /> Back to Details
-              </button>
             </motion.div>
           )}
 

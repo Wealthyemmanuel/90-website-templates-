@@ -147,13 +147,14 @@ export default function Sales() {
             <span className="font-mono text-5xl font-bold text-gold">N5,000</span>
             <span className="font-mono text-2xl text-danger line-through">N20,000</span>
           </div>
-          <button onClick={() => setIsModalOpen(true)} className="btn-shimmer inline-flex items-center justify-center gap-2 w-full max-w-md p-5 bg-gold text-black font-bold text-xl rounded hover:bg-gold-light transition-transform hover:-translate-y-0.5">
+          <button onClick={() => setIsModalOpen(true)} className="btn-shimmer inline-flex items-center justify-center gap-2 w-full max-w-md p-5 bg-gold text-black font-bold text-xl rounded hover:bg-gold-light transition-transform hover:-translate-y-0.5 mb-6">
             Get The Bundle Now <ArrowRight size={20} />
           </button>
-          <div className="flex justify-center flex-wrap gap-3 mt-6">
-            {['Card', 'Bank Transfer', 'USSD', 'Opay/Kuda'].map(method => (
-              <span key={method} className="bg-surface-2 border border-[#333] text-text-muted px-4 py-1.5 rounded-full text-sm">{method}</span>
-            ))}
+          <div className="flex flex-wrap justify-center gap-3 text-sm text-text-muted">
+            <span className="px-3 py-1 border border-[#333] rounded-full">Card</span>
+            <span className="px-3 py-1 border border-[#333] rounded-full">Bank Transfer</span>
+            <span className="px-3 py-1 border border-[#333] rounded-full">USSD</span>
+            <span className="px-3 py-1 border border-[#333] rounded-full">Opay/Kuda</span>
           </div>
         </motion.div>
 
