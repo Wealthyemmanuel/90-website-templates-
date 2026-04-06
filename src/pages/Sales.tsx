@@ -59,10 +59,13 @@ export default function Sales() {
           <p className="text-text-muted text-lg md:text-xl max-w-2xl mx-auto mb-8">
             Stop losing clients because you can't design fast enough. Get the exact templates, proposals, and training you need to close N80k+ deals this week.
           </p>
-          <div className="flex items-center justify-center gap-4">
+          <div className="flex items-center justify-center gap-4 mb-8">
             <span className="font-mono text-5xl font-bold text-gold">N5,000</span>
             <span className="font-mono text-2xl text-danger line-through">N20,000</span>
           </div>
+          <button onClick={() => setIsModalOpen(true)} className="btn-shimmer inline-flex items-center justify-center gap-2 w-full max-w-md p-5 bg-gold text-black font-bold text-xl rounded hover:bg-gold-light transition-transform hover:-translate-y-0.5">
+            Get The Bundle Now <ArrowRight size={20} />
+          </button>
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }} className="mb-16">

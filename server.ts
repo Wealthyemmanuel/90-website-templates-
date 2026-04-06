@@ -115,6 +115,7 @@ async function startServer() {
           Reference: ''
         });
       }
+
       res.json({ success: true });
     } catch (error) {
       console.error('Optin error:', error);
@@ -129,18 +130,6 @@ async function startServer() {
       // Fire CAPI Purchase Event
       await sendMetaEvent(req, 'Purchase', { name, email, whatsapp }, { currency: 'NGN', value: 5000 });
 
-      const doc = await getSheet();
-      if (doc) {
-        const sheet = doc.sheetsByIndex[0];
-        await sheet.addRow({
-          Date: new Date().toISOString(),
-          Name: name,
-          Email: email,
-          WhatsApp: whatsapp,
-          Status: 'Purchased',
-          Reference: reference
-        });
-      }
       res.json({ success: true });
     } catch (error) {
       console.error('Purchase error:', error);

@@ -39,11 +39,18 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
   };
 
   const handlePayment = () => {
+    if (!formData.email) {
+      alert("Please enter your email address first.");
+      setStep(1);
+      return;
+    }
+
     // @ts-ignore
-    if (typeof PaystackPop === 'undefined') {
+    if (typeof window.PaystackPop === 'undefined') {
       const script = document.createElement('script');
       script.src = 'https://js.paystack.co/v1/inline.js';
       script.onload = initializePayment;
+      script.onerror = () => alert("Failed to load payment gateway. Please check your internet connection.");
       document.body.appendChild(script);
     } else {
       initializePayment();
@@ -51,37 +58,42 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
   };
 
   const initializePayment = () => {
-    // @ts-ignore
-    const handler = PaystackPop.setup({
-      key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_fbab14cc7aff03ae794c607f3b8112a7861f3947',
-      email: formData.email,
-      amount: 500000, // 500000 kobo = N5000
-      currency: 'NGN',
-      ref: 'NAVAL_' + Math.floor((Math.random() * 1000000000) + 1),
-      callback: async function(response: any) {
-        try {
-          // Backend handles Google Sheets AND CAPI Purchase Event
-          await fetch('/api/purchase', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              name: formData.name,
-              email: formData.email,
-              whatsapp: formData.whatsapp,
-              reference: response.reference
-            })
-          });
-        } catch (err) {
-          console.error('Failed to save purchase to sheets:', err);
-        }
+    try {
+      // @ts-ignore
+      const handler = window.PaystackPop.setup({
+        key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_fbab14cc7aff03ae794c607f3b8112a7861f3947',
+        email: formData.email,
+        amount: 500000, // 500000 kobo = N5000
+        currency: 'NGN',
+        ref: 'NAVAL_' + Math.floor((Math.random() * 1000000000) + 1),
+        callback: async function(response: any) {
+          try {
+            // Backend handles CAPI Purchase Event
+            await fetch('/api/purchase', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                name: formData.name,
+                email: formData.email,
+                whatsapp: formData.whatsapp,
+                reference: response.reference
+              })
+            });
+          } catch (err) {
+            console.error('Failed to save purchase:', err);
+          }
 
-        setStep(3);
-      },
-      onClose: function() {
-        console.log('Payment window closed');
-      }
-    });
-    handler.openIframe();
+          setStep(3);
+        },
+        onClose: function() {
+          console.log('Payment window closed');
+        }
+      });
+      handler.openIframe();
+    } catch (err) {
+      console.error("Paystack initialization error:", err);
+      alert("Payment failed to initialize. If you are viewing this inside the AI Studio preview, please click the 'Open in New Tab' button at the top right of the preview window to process payments.");
+    }
   };
 
   const getWhatsAppLink = () => {
