@@ -79,12 +79,20 @@ export default function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
       return;
     }
     
+    // --- TEMPORARY PAYMENT BYPASS FOR TESTING ---
+    // This simulates a successful payment instantly without loading Paystack.
+    console.log("Bypassing Paystack for testing...");
+    onSuccess({ reference: 'TEST_BYPASS_' + Date.now() });
+
+    /* 
+    // --- UNCOMMENT THIS SECTION FOR PRODUCTION DEPLOYMENT ---
     try {
       initializePayment({ onSuccess, onClose: onClosePayment });
     } catch (err) {
       console.error("Paystack initialization error:", err);
       alert("Payment failed to initialize. Please check your internet connection and try again.");
     }
+    */
   };
 
   const getWhatsAppLink = () => {
